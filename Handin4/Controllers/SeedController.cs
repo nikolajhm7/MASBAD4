@@ -1,5 +1,6 @@
 ﻿using Handin4.Data;
 using Handin4.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using System.Security.Claims;
 
 namespace Handin4.Controllers
 {
+    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class SeedController : ControllerBase
@@ -197,106 +199,87 @@ namespace Handin4.Controllers
         #endregion
         #region SeedUsers
         [HttpPut("SeedUsers")]
+        [ResponseCache(NoStore = true)]
         public async Task<IActionResult> SeedUsers()
         {
             var seededUsers = 0;
 
-            // Admin user
-            var adminUser = new User
-            {
-                UserName = "admin",
-                Email = "admin@example.com",
-                Name = "Admin Adminsen"
-            };
 
-            if (await _userManager.FindByEmailAsync(adminUser.Email) == null)
-            {
-                var userResult = await _userManager.CreateAsync(adminUser, "YourStrongPassword1!");
 
-                if (userResult.Succeeded)
+            const string adminEmail = "admin@example.com";
+            const string genericPassword = "YourStrongPassword1!";
+
+            if (await _userManager.FindByNameAsync(adminEmail) == null)
+            {
+                var adminUser = new User();
+                adminUser.Name = "Admin Adminsen";
+                adminUser.UserName = adminEmail;
+                adminUser.Email = adminEmail;
+                adminUser.EmailConfirmed = true;
+                IdentityResult result = _userManager.CreateAsync(adminUser, genericPassword).Result;
+                if (result.Succeeded)
                 {
-                    // Add admin claim
-                    //var roleResult = _userManager.AddClaimAsync(adminUser, new Claim("isAdmin", "true")).Result;
-                    var roleResult = _userManager.AddToRoleAsync(adminUser, "Admin").Result;
-
-                    if (!roleResult.Succeeded)
-                        throw new Exception(roleResult.ToString());
-
+                    var newAdminUser = _userManager.FindByNameAsync(adminEmail).Result;
+                    var adminClaim = new Claim(ClaimTypes.Role, "Admin");
+                    var claimAdded = _userManager.AddClaimAsync(newAdminUser, adminClaim).Result;
                     seededUsers++;
                 }
             }
 
-            // Manager user
-            var managerUser = new User
-            {
-                UserName = "manager",
-                Email = "manager@example.com",
-                Name = "Manager Managersen"
-            };
+            const string managerEmail = "manager@example.com";
 
-            if (await _userManager.FindByEmailAsync(managerUser.Email) == null)
-            {
-                var userResult = await _userManager.CreateAsync(managerUser, "YourStrongPassword1!");
 
-                if (userResult.Succeeded)
+            if (await _userManager.FindByNameAsync(managerEmail) == null)
+            {
+                var managerUser = new User();
+                managerUser.Name = "Manager Managersen";
+                managerUser.UserName = managerEmail;
+                managerUser.Email = managerEmail;
+                managerUser.EmailConfirmed = true;
+                IdentityResult result = _userManager.CreateAsync(managerUser, genericPassword).Result;
+                if (result.Succeeded)
                 {
-                    // Add manager claim
-                    //var roleResult = _userManager.AddClaimAsync(managerUser, new Claim(ClaimTypes.Role, "Manager")).Result;
-                    var roleResult = _userManager.AddToRoleAsync(managerUser, "Manager").Result;
-
-                    if (!roleResult.Succeeded)
-                        throw new Exception(roleResult.ToString());
-
+                    var newManagerUser = _userManager.FindByNameAsync(managerEmail).Result;
+                    var managerClaim = new Claim(ClaimTypes.Role, "Manager");
+                    var claimAdded = _userManager.AddClaimAsync(newManagerUser, managerClaim).Result;
                     seededUsers++;
                 }
             }
 
-            // Baker user
-            var bakerUser = new User
-            {
-                UserName = "baker",
-                Email = "baker@example.com",
-                Name = "Baker Bakerson"
-            };
+            const string bakerEmail = "baker@example.com";
 
-            if (await _userManager.FindByEmailAsync(bakerUser.Email) == null)
+            if (await _userManager.FindByNameAsync(bakerEmail) == null)
             {
-                var userResult = await _userManager.CreateAsync(bakerUser, "YourStrongPassword1!");
-
-                if (userResult.Succeeded)
+                var bakerUser = new User();
+                bakerUser.Name = "Baker Bakersen";
+                bakerUser.UserName = bakerEmail;
+                bakerUser.Email = bakerEmail;
+                bakerUser.EmailConfirmed = true;
+                IdentityResult result = _userManager.CreateAsync(bakerUser, genericPassword).Result;
+                if (result.Succeeded)
                 {
-                    // Add baker claim
-                    //var roleResult = _userManager.AddClaimAsync(bakerUser, new Claim(ClaimTypes.Role, "Baker")).Result;
-                    var roleResult = _userManager.AddToRoleAsync(bakerUser, "Baker").Result;
-
-                    if (!roleResult.Succeeded)
-                        throw new Exception(roleResult.ToString());
-
+                    var newBakerUser = _userManager.FindByNameAsync(bakerEmail).Result;
+                    var bakerClaim = new Claim(ClaimTypes.Role, "Baker");
+                    var claimAdded = _userManager.AddClaimAsync(newBakerUser, bakerClaim).Result;
                     seededUsers++;
                 }
             }
 
-            // Driver user
-            var driverUser = new User
-            {
-                UserName = "driver",
-                Email = "driver@example.com",
-                Name = "Driver Driverson"
-            };
+            const string driverEmail = "driver@example.com";
 
-            if (await _userManager.FindByEmailAsync(driverUser.Email) == null)
+            if (await _userManager.FindByNameAsync(driverEmail) == null)
             {
-                var userResult = await _userManager.CreateAsync(driverUser, "YourStrongPassword1!");
-
-                if (userResult.Succeeded)
+                var driverUser = new User();
+                driverUser.Name = "Driver Driversen";
+                driverUser.UserName = driverEmail;
+                driverUser.Email = driverEmail;
+                driverUser.EmailConfirmed = true;
+                IdentityResult result = _userManager.CreateAsync(driverUser, genericPassword).Result;
+                if (result.Succeeded)
                 {
-                    // Add driver claim
-                    //var roleResult = _userManager.AddClaimAsync(driverUser, new Claim(ClaimTypes.Role, "Driver")).Result;
-                    var roleResult = _userManager.AddToRoleAsync(driverUser, "Driver").Result;
-
-                    if (!roleResult.Succeeded)
-                        throw new Exception(roleResult.ToString());
-
+                    var newDriverUser = _userManager.FindByNameAsync(driverEmail).Result;
+                    var driverClaim = new Claim(ClaimTypes.Role, "Driver");
+                    var claimAdded = _userManager.AddClaimAsync(newDriverUser, driverClaim).Result;
                     seededUsers++;
                 }
             }

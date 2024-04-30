@@ -1,11 +1,13 @@
 ﻿using Handin4.Data;
 using Handin4.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Handin4.Controllers
 {
+    [Authorize(Policy = "ManagerOrHigher")]
     [Route("api/[controller]")]
     [ApiController]
     public class IngredientsController : ControllerBase

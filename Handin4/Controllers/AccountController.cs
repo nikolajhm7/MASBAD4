@@ -1,5 +1,6 @@
 ﻿using Handin4.DTO;
 using Handin4.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -30,7 +31,7 @@ namespace Handin4.Controllers
         }
 
 
-
+        [AllowAnonymous]
         [HttpPost]
         [Route("Register")]
         public async Task<ActionResult> Register(RegisterDTO input)
@@ -83,6 +84,7 @@ namespace Handin4.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("Login")]
         public async Task<ActionResult> Login(LoginDTO input)
@@ -96,13 +98,22 @@ namespace Handin4.Controllers
                         throw new Exception("Invalid login attempt.");
                     else
                     {
+                        var userRole = await _userManager.GetClaimsAsync(user);
+                        var role = userRole.FirstOrDefault();
+
                         var signingCredentials = new SigningCredentials(
                                 new SymmetricSecurityKey(
                                 System.Text.Encoding.UTF8.GetBytes(_configuration["JWT:SigningKey"])),
                                 SecurityAlgorithms.HmacSha256);
 
-                        var claims = new List<Claim>();
-                        claims.Add(new Claim(ClaimTypes.Name, user.UserName));
+                        var claims = new List<Claim>
+                        {
+                            new Claim(ClaimTypes.Name, user.UserName),
+                        };
+                        if (role != null)
+                        {
+                            claims.Add(new Claim(ClaimTypes.Role, role.Value));
+                        }
 
                         var jwtObject = new JwtSecurityToken(
                                 issuer: _configuration["JWT:Issuer"],
@@ -110,6 +121,7 @@ namespace Handin4.Controllers
                                 claims: claims,
                                 expires: DateTime.Now.AddSeconds(300),
                                 signingCredentials: signingCredentials);
+                       
                         var jwtString = new JwtSecurityTokenHandler()
                         .WriteToken(jwtObject);
 

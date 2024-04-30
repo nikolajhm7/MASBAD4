@@ -7,7 +7,6 @@ using System.Globalization;
 
 namespace Handin4.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class QueryController : ControllerBase
@@ -22,8 +21,8 @@ namespace Handin4.Controllers
         }
 
         // Query 1: Get all ingredients
-        [Authorize(Policy = "BakedGoodsAccess")]
         [HttpGet("Ingredients")]
+        [Authorize(Policy = "BakerOrHigher")]
         public async Task<ActionResult> GetIngredients()
         {
             var ingredients = await _context.Ingredients
@@ -34,7 +33,7 @@ namespace Handin4.Controllers
         }
 
         // Query 2: Get order information by orderId
-        [Authorize(Policy = "OrderAccess")]
+        [Authorize(Policy = "DriverOrHigher")]
         [HttpGet("Order/{orderId}")]
         public async Task<ActionResult> GetOrder(int orderId)
         {
@@ -52,7 +51,7 @@ namespace Handin4.Controllers
         }
 
         // Query 3: Get baked goods information by orderId
-        [Authorize(Policy = "OrderAccess")]
+        [Authorize(Policy = "DriverOrHigher")]
         [HttpGet("BakedGoods/{orderId}")]
         public async Task<ActionResult> GetBakedGoods(int orderId)
         {
@@ -68,7 +67,7 @@ namespace Handin4.Controllers
         }
 
         // Query 4: Get ingredient information for a batch
-        [Authorize(Policy = "BakedGoodsAccess")]
+        [Authorize(Policy = "BakerOrHigher")]
         [HttpGet("BatchIngredients/{batchId}")]
         public async Task<ActionResult> GetBatchIngredients(int batchId)
         {
@@ -89,7 +88,7 @@ namespace Handin4.Controllers
         }
 
         // Query 5: Get trackId for an order
-        [Authorize(Policy = "OrderAccess")]
+        [Authorize(Policy = "DriverOrHigher")]
         [HttpGet("TrackId/{orderId}")]
         public async Task<ActionResult> GetTrackId(int orderId)
         {
@@ -112,7 +111,7 @@ namespace Handin4.Controllers
         }
 
         // Query 6: Get total quantity for each baked good
-        [Authorize(Policy = "IngredientsAccess")]
+        [Authorize(Policy = "ManagerOrHigher")]
         [HttpGet("TotalBakedGoods")]
         public async Task<ActionResult> GetTotalBakedGoods()
         {
@@ -130,7 +129,7 @@ namespace Handin4.Controllers
         }
 
         // Query 7: Get average delay for all batches
-        [Authorize(Policy = "BakedGoodsAccess")]
+        [Authorize(Policy = "BakerOrHigher")]
         [HttpGet("AverageDelay")]
         public async Task<ActionResult> GetAverageDelay()
         {

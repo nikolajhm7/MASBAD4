@@ -6,6 +6,8 @@ using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using System.Reflection.Emit;
+using System.Security.Claims;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,7 +41,7 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
+        Type = SecuritySchemeType.Http,
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
@@ -75,59 +77,8 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 }).AddEntityFrameworkStores<myDbContext>();
 
 // Add JWT authentication
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme =
-    options.DefaultChallengeScheme =
-    options.DefaultForbidScheme =
-    options.DefaultScheme =
-    options.DefaultSignInScheme =
-    options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["JWT:Issuer"],
-        ValidAudience = builder.Configuration["JWT:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            System.Text.Encoding.UTF8.GetBytes(
-                builder.Configuration["JWT:SigningKey"]))
-    };
-});
 
-// Add authorization policies
-builder.Services.AddAuthorization(options =>
-{
-    options.DefaultPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .RequireRole("User") // Angiv de roller, som standard autentificerede brugere skal have
-        .Build();
-
-    options.AddPolicy("AdminAccess", policy =>
-        policy.RequireAssertion(context =>
-            context.User.IsInRole("Admin")));
-
-    options.AddPolicy("IngredientsAccess", policy =>
-        policy.RequireAssertion(context =>
-            context.User.IsInRole("Admin") ||
-            context.User.IsInRole("Manager")));
-
-    options.AddPolicy("OrderAccess", policy =>
-        policy.RequireAssertion(context =>
-            context.User.IsInRole("Admin") ||
-            context.User.IsInRole("Manager") ||
-            context.User.IsInRole("Driver")));
-
-    options.AddPolicy("BakedGoodsAccess", policy =>
-        policy.RequireAssertion(context =>
-            context.User.IsInRole("Admin") ||
-            context.User.IsInRole("Manager") ||
-            context.User.IsInRole("Baker")));
-});
+addJWTAuthentication(builder);
 
 var app = builder.Build();
 
@@ -146,3 +97,77 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+void addJWTAuthentication(WebApplicationBuilder builder)
+{
+    var jwtKeySecret = builder.Configuration["JWT:SigningKey"];
+    var jwtIssuerSecret = builder.Configuration["JWT:Issuer"];
+    var jwtAudienceSecret = builder.Configuration["JWT:Audience"];
+
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme =
+            options.DefaultChallengeScheme =
+                options.DefaultForbidScheme =
+                    options.DefaultScheme =
+                        options.DefaultSignInScheme =
+                            options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuerSecret,
+            ValidAudience = jwtAudienceSecret,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(
+                    jwtKeySecret))
+        };
+        options.TokenValidationParameters.RoleClaimType = "Role";
+        //options.TokenValidationParameters.NameClaimType = "Name";
+
+        options.MapInboundClaims = false;
+    });
+
+    // Add authorization policies
+    builder.Services.AddAuthorization(options =>
+    {
+
+        //options.AddPolicy("AdminAccess", policy =>
+        //    policy.RequireAssertion(context =>
+        //        context.User.IsInRole("Admin")));
+
+        //options.AddPolicy("IngredientsAccess", policy =>
+        //    policy.RequireAssertion(context =>
+        //        context.User.IsInRole("Admin") ||
+        //        context.User.IsInRole("Manager")));
+
+        //options.AddPolicy("OrderAccess", policy =>
+        //    policy.RequireAssertion(context =>
+        //        context.User.IsInRole("Admin") ||
+        //        context.User.IsInRole("Manager") ||
+        //        context.User.IsInRole("Driver")));
+
+        //options.AddPolicy("BakedGoodsAccess", policy =>
+        //    policy.RequireAssertion(context =>
+        //        context.User.IsInRole("Admin") ||
+        //        context.User.IsInRole("Manager") ||
+        //        context.User.IsInRole("Baker")));
+
+        options.AddPolicy("AdminAccess", policy =>
+            policy.RequireClaim(ClaimTypes.Role, "Admin"));
+
+        options.AddPolicy("ManagerOrHigher", policy =>
+            policy.RequireClaim(ClaimTypes.Role, "Manager", "Admin"));
+
+        options.AddPolicy("BakerOrHigher", policy =>
+            policy.RequireClaim(ClaimTypes.Role, "Baker", "Manager", "Admin"));
+
+        options.AddPolicy("DriverOrHigher", policy =>
+            policy.RequireClaim(ClaimTypes.Role, "Driver", "Manager", "Admin"));
+
+    });
+}
