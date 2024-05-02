@@ -1,0 +1,20 @@
+version: '3.9'
+services:
+  api:
+    image: bakerydbimage
+    ports:
+      - "5029:5029"
+      - "7147:7147"
+    depends_on:
+      - mongodb
+      - mssql
+  mongodb:
+    image: mongo:latest
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      SA_PASSWORD: "abc123AB"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
+      MSSQL_SA_PASSWORD: "abc123AB"
+      MSSQL_DATABASE: "BakeryDB"
