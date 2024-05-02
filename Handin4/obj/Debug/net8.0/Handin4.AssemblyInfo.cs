@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Handin4")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dbe62f36ad13a983ba1f52a94e5b32429b0180e4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f2a8059fed099784eb7af3389c9aae6095c433d2")]
 [assembly: System.Reflection.AssemblyProductAttribute("Handin4")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Handin4")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

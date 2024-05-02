@@ -27,23 +27,6 @@ builder.Services.AddControllers()
     });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
-//builder.Services.AddCors(options =>
-//{
-//    options.AddDefaultPolicy(cfg =>
-//    {
-//        cfg.WithOrigins(builder.Configuration["AllowedOrigins"]);
-//        cfg.AllowAnyHeader();
-//        cfg.AllowAnyMethod();
-//    });
-//    options.AddPolicy(name: "AnyOrigin",
-//        cfg =>
-//        {
-//            cfg.AllowAnyOrigin();
-//            cfg.AllowAnyHeader();
-//            cfg.AllowAnyMethod();
-//        });
-//});
-
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -153,28 +136,6 @@ void addJWTAuthentication(WebApplicationBuilder builder)
     // Add authorization policies
     builder.Services.AddAuthorization(options =>
     {
-
-        //options.AddPolicy("AdminAccess", policy =>
-        //    policy.RequireAssertion(context =>
-        //        context.User.IsInRole("Admin")));
-
-        //options.AddPolicy("IngredientsAccess", policy =>
-        //    policy.RequireAssertion(context =>
-        //        context.User.IsInRole("Admin") ||
-        //        context.User.IsInRole("Manager")));
-
-        //options.AddPolicy("OrderAccess", policy =>
-        //    policy.RequireAssertion(context =>
-        //        context.User.IsInRole("Admin") ||
-        //        context.User.IsInRole("Manager") ||
-        //        context.User.IsInRole("Driver")));
-
-        //options.AddPolicy("BakedGoodsAccess", policy =>
-        //    policy.RequireAssertion(context =>
-        //        context.User.IsInRole("Admin") ||
-        //        context.User.IsInRole("Manager") ||
-        //        context.User.IsInRole("Baker")));
-
         options.AddPolicy("AdminAccess", policy =>
             policy.RequireClaim(ClaimTypes.Role, "Admin"));
 

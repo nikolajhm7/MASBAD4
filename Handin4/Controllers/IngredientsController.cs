@@ -106,7 +106,6 @@ namespace Handin4.Controllers
                 Username = userName,
                 OperationType = "Create"
             });
-            //_logger.LogInformation(JsonSerializer.Serialize(new LogEntry(userName, DateTime.Now, "Create")));
 
             return Ok($"{ingredientDto.Name} was added to the database with the quantity of {ingredientDto.Quantity}");
         }
@@ -137,7 +136,6 @@ namespace Handin4.Controllers
                 Username = userName,
                 OperationType = "Update"
             });
-            //_logger.LogInformation(JsonSerializer.Serialize(new LogEntry(userName, DateTime.Now, "Update")));
 
             return Ok($"{ingredient.Name} quantity is now {ingredient.Quantity}");
         }

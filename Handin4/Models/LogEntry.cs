@@ -6,12 +6,6 @@ namespace Handin4.Models
     [BsonIgnoreExtraElements]
     public class LogEntry
     {
-        //public LogEntry(string username, DateTime timeStamp, string operationType)
-        //{
-        //    Username = username;
-        //    TimeStamp = timeStamp;
-        //    OperationType = operationType;
-        //}
 
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
