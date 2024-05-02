@@ -8,13 +8,23 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using System.Reflection.Emit;
 using System.Security.Claims;
+using Serilog;
+using System.Text.Json.Serialization;
+using Handin4.Services;
+using Handin4.Services.Interfaces;
+using MongoDB.Driver;
+using Microsoft.Extensions.DependencyInjection;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
 //builder.Services.AddCors(options =>
@@ -78,7 +88,15 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 
 // Add JWT authentication
 
+builder.Host.UseSerilog((ctx, cfg) =>
+{
+    cfg.ReadFrom.Configuration(ctx.Configuration);
+});
+    
+
 addJWTAuthentication(builder);
+
+ConfigureServices(builder.Services);
 
 var app = builder.Build();
 
@@ -169,5 +187,22 @@ void addJWTAuthentication(WebApplicationBuilder builder)
         options.AddPolicy("DriverOrHigher", policy =>
             policy.RequireClaim(ClaimTypes.Role, "Driver", "Manager", "Admin"));
 
+    });
+}
+
+
+void ConfigureServices(IServiceCollection services)
+{
+
+    builder.Services.AddSingleton<IMongoClient>(serviceProvider =>
+    {
+        var mongoConnectionString = builder.Configuration.GetConnectionString("MongoDBConnection");
+        return new MongoClient(mongoConnectionString); ;
+    });
+
+    services.AddScoped<ILogService, LogService>(serviceProvider =>
+    {
+        var mongoClient = serviceProvider.GetRequiredService<IMongoClient>();
+        return new LogService(mongoClient);
     });
 }

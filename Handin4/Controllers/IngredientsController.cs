@@ -1,9 +1,13 @@
 ﻿using Handin4.Data;
 using Handin4.Models;
+using Handin4.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using MongoDB.Bson.Serialization;
 
 namespace Handin4.Controllers
 {
@@ -13,25 +17,23 @@ namespace Handin4.Controllers
     public class IngredientsController : ControllerBase
     {
         private readonly myDbContext _context;
+        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly ILogger<IngredientsController> _logger;
 
-        public IngredientsController(myDbContext context)
+        public IngredientsController(IHttpContextAccessor contextAccessor, myDbContext context, ILogger<IngredientsController> logger)
         {
             _context = context;
+            _logger = logger;
+            _contextAccessor = contextAccessor;
         }
 
-        // GET: api/Ingredients
-        [HttpGet]
-        public async Task<ActionResult> GetIngredients()
-        {
-            var ingredients = await _context.Ingredients.ToListAsync();
-            return Ok(ingredients);
-        }
-
-        // GET: api/Ingredients/Flour
         [HttpGet("{name}")]
         public async Task<ActionResult> GetIngredient(string name)
         {
-            var ingredient = await _context.Ingredients.FindAsync(name);
+            var ingredient = await _context.Ingredients
+                .Include(i => i.IngredientAllergens)
+                    .ThenInclude(ia => ia.Allergen) // Inkluder allergener
+                .FirstOrDefaultAsync(i => i.Name == name);
 
             if (ingredient == null)
             {
@@ -41,20 +43,64 @@ namespace Handin4.Controllers
             return Ok(ingredient);
         }
 
-        // POST: api/Ingredients
         [HttpPost]
-        public async Task<ActionResult> CreateIngredient(Ingredient ingredient)
+        public async Task<ActionResult> CreateIngredient(CreateIngredientDTO ingredientDto)
         {
-            if (ingredient == null || ingredient.Quantity < 0) { return BadRequest("Quantity cannot be negative."); }
+            if (ingredientDto == null || ingredientDto.Quantity < 0) { return BadRequest("Quantity cannot be negative."); }
+
+            var ingredient = new Ingredient
+            {
+                Quantity = ingredientDto.Quantity,
+                Name = ingredientDto.Name,
+            };
+
+
+
+            foreach (var allergenName in ingredientDto.AllergenName)
+            {
+                var all = _context.Allergens.FirstOrDefault(a => a.Name == allergenName);
+                if (all != null)
+                {
+                    _logger.LogInformation($"Opretter ikke allergenen {allergenName}, da den allerede eksisterer i databasen");
+                }
+                else
+                {
+                    var tempAl = new Allergen
+                    {
+                        Name = allergenName,
+                    };
+
+                    var ingredientAllergen = new IngredientAllergen
+                    {
+                        Ingredient = ingredient,
+                        Allergen = tempAl,
+                    };
+
+                    tempAl.IngredientAllergens.Add(ingredientAllergen);
+
+                    ingredient.IngredientAllergens.Add(ingredientAllergen);
+
+                    _context.IngredientAllergens.Add(ingredientAllergen);
+                    _context.Allergens.Add(tempAl);
+                }
+            }
 
             _context.Ingredients.Add(ingredient);
 
+
+
             await _context.SaveChangesAsync();
 
-            return Ok($"{ingredient.Name} was added to the database with the quantity of {ingredient.Quantity}");
+            var userName = _contextAccessor.HttpContext?.User?.Identity?.Name;
+
+            var log = new LogEntry(userName, DateTime.UtcNow, "Create");
+
+            _logger.LogInformation(JsonSerializer.Serialize(log));
+            //_logger.LogInformation(JsonSerializer.Serialize(new LogEntry(userName, DateTime.Now, "Create")));
+
+            return Ok($"{ingredientDto.Name} was added to the database with the quantity of {ingredientDto.Quantity}");
         }
 
-        // PUT: api/Ingredients/Flour
         [HttpPut]
         public async Task<IActionResult> UpdateIngredient(Ingredient ingredient)
         {
@@ -66,10 +112,16 @@ namespace Handin4.Controllers
 
             await _context.SaveChangesAsync();
 
+            var userName = _contextAccessor.HttpContext?.User?.Identity?.Name;
+
+            var log = new LogEntry(userName, DateTime.UtcNow,"Update");
+
+            _logger.LogInformation(JsonSerializer.Serialize(log));
+            //_logger.LogInformation(JsonSerializer.Serialize(new LogEntry(userName, DateTime.Now, "Update")));
+
             return Ok($"{ingredient.Name} quantity is now {ingredient.Quantity}");
         }
 
-        // DELETE: api/Ingredients/Flour
         [HttpDelete("{name}")]
         public async Task<ActionResult> DeleteIngredient(string name)
         {
@@ -78,6 +130,12 @@ namespace Handin4.Controllers
 
             _context.Ingredients.Remove(ingredient);
             await _context.SaveChangesAsync();
+
+            var userName = _contextAccessor.HttpContext?.User?.Identity?.Name;
+
+            var log = new LogEntry(userName, DateTime.UtcNow, "Delete");
+
+            _logger.LogInformation(JsonSerializer.Serialize(log));
 
             return Ok($"{name} was removed from the database");
         }
