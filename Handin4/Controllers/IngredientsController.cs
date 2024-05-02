@@ -93,9 +93,19 @@ namespace Handin4.Controllers
 
             var userName = _contextAccessor.HttpContext?.User?.Identity?.Name;
 
-            var log = new LogEntry(userName, DateTime.UtcNow, "Create");
+            var log = new LogEntry
+            {
+                Username = userName,
+                TimeStamp = DateTime.UtcNow,
+                OperationType = "Create"
+            };
 
-            _logger.LogInformation(JsonSerializer.Serialize(log));
+            _logger.LogInformation("Request: {@LogInfo}", new
+            {
+                TimeStamp = DateTime.UtcNow,
+                Username = userName,
+                OperationType = "Create"
+            });
             //_logger.LogInformation(JsonSerializer.Serialize(new LogEntry(userName, DateTime.Now, "Create")));
 
             return Ok($"{ingredientDto.Name} was added to the database with the quantity of {ingredientDto.Quantity}");
@@ -114,9 +124,19 @@ namespace Handin4.Controllers
 
             var userName = _contextAccessor.HttpContext?.User?.Identity?.Name;
 
-            var log = new LogEntry(userName, DateTime.UtcNow,"Update");
+            var log = new LogEntry{
+                Username = userName, 
+                TimeStamp = DateTime.UtcNow,
+                OperationType = "Update"
+            };
 
-            _logger.LogInformation(JsonSerializer.Serialize(log));
+
+            _logger.LogInformation("Request: {@LogInfo}", new
+            {
+                TimeStamp = DateTime.UtcNow,
+                Username = userName,
+                OperationType = "Update"
+            });
             //_logger.LogInformation(JsonSerializer.Serialize(new LogEntry(userName, DateTime.Now, "Update")));
 
             return Ok($"{ingredient.Name} quantity is now {ingredient.Quantity}");
@@ -133,9 +153,19 @@ namespace Handin4.Controllers
 
             var userName = _contextAccessor.HttpContext?.User?.Identity?.Name;
 
-            var log = new LogEntry(userName, DateTime.UtcNow, "Delete");
+            var log = new LogEntry
+            {
+                Username = userName,
+                TimeStamp = DateTime.UtcNow,
+                OperationType = "Delete"
+            };
 
-            _logger.LogInformation(JsonSerializer.Serialize(log));
+            _logger.LogInformation("Request: {@LogInfo}", new
+            {
+                TimeStamp = DateTime.UtcNow,
+                Username =userName,
+                OperationType = "Delete"
+            });
 
             return Ok($"{name} was removed from the database");
         }

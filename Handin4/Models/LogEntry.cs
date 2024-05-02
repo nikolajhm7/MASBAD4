@@ -6,33 +6,32 @@ namespace Handin4.Models
     [BsonIgnoreExtraElements]
     public class LogEntry
     {
-        public LogEntry(string username, DateTime utcTimeStamp, string operationType)
-        {
-            Username = username;
-            UtcTimeStamp = utcTimeStamp;
-            OperationType = operationType;
-        }
+        //public LogEntry(string username, DateTime timeStamp, string operationType)
+        //{
+        //    Username = username;
+        //    TimeStamp = timeStamp;
+        //    OperationType = operationType;
+        //}
 
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
 
         [BsonElement("Username")]
-        public string Username { get; set; } = "hej";
+        public string Username { get; set; }
 
-
-        [BsonElement("UtcTimeStamp")]
-        public DateTime UtcTimeStamp { get; set; } = DateTime.MinValue;
+        [BsonElement("TimeStamp")]
+        public DateTime TimeStamp { get; set; }
 
         [BsonElement("OperationType")]
-        public string OperationType { get; set; } = "hej";
+        public string OperationType { get; set; }
 
         public override string ToString()
         {
             return "Entry(" +
                 "Id" + Id + "," +
                 "Username" + Username + "," +
-                "UtcTimeStamp" + UtcTimeStamp + "," +
+                "UtcTimeStamp" + TimeStamp + "," +
                 "OperationType" + OperationType +
                 ")";
         }

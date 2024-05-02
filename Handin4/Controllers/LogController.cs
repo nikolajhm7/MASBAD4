@@ -1,4 +1,5 @@
-﻿using Handin4.Services;
+﻿using Handin4.Models;
+using Handin4.Services;
 using Handin4.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -17,14 +18,28 @@ namespace Handin4.Controllers
             _logService = logService;
         }
 
-        [HttpGet("search-logs")]
+        [HttpGet("get-all-logs")]
         [Authorize(Policy = "AdminAccess")]
-        public async Task<ActionResult> SearchLogs()
+        public async Task<List<LogEntry>> GetAllLogs()
         {
+            return await _logService.GetAllLogs();
+        }
 
-            var logs = await _logService.SearchLogs();
-            logs.ToString();
-            return Ok(logs);
+
+        [HttpGet("get-logs")]
+        [Authorize(Policy = "AdminAccess")]
+        public async Task<List<LogEntry>> GetLogs(string? username, string? operation, DateTime? startTime, DateTime? endTime)
+        {
+            var logs = await _logService.GetAllLogs();
+
+            var filtLogs = logs.Where(log =>
+                (string.IsNullOrEmpty(username)) || log.Username == username &&
+                (string.IsNullOrEmpty(operation) || log.OperationType == operation) &&
+                (!startTime.HasValue || log.TimeStamp >= startTime) &&
+                (!endTime.HasValue || log.TimeStamp <= endTime)
+            ).ToList();
+
+            return filtLogs;
         }
     }
 }
