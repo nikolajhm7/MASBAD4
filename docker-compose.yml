@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   api:
-    image: bakerydbimage
+    image: nikolajhm7/bakerydbimage:api
     ports:
       - "80:80"
     depends_on:
